@@ -3,7 +3,7 @@
 // @namespace    Violentmonkey Scripts
 // @match        https://*.tonverse.app/*
 // @grant        none
-// @version      1.0
+// @version      1.1
 // @author       mudachyo
 // @icon         https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcT_G0oRZtHTCj0Z6AEqmLAcFrRP34XjdA-hnD2dyyqu-H_5ue6j
 // @downloadURL  https://github.com/mudachyo/TinyVerse/raw/main/tinyverse-autoclicker.user.js
@@ -23,17 +23,56 @@
         const x = rect.left + rect.width / 2;
         const y = rect.top + rect.height / 2;
 
-        const events = [
-            { type: 'pointerdown', options: { pointerId: 1, width: 1, height: 1, pressure: 0.5 } },
-            { type: 'mousedown', options: {} },
-            { type: 'pointermove', options: { pointerId: 1, width: 1, height: 1, pressure: 0.5 } },
-            { type: 'mousemove', options: {} },
-            { type: 'pointerup', options: { pointerId: 1, width: 1, height: 1, pressure: 0 } },
-            { type: 'mouseup', options: {} },
-            { type: 'click', options: {} }
+        const events = [{
+                type: 'pointerdown',
+                options: {
+                    pointerId: 1,
+                    width: 1,
+                    height: 1,
+                    pressure: 0.5
+                }
+            },
+            {
+                type: 'mousedown',
+                options: {}
+            },
+            {
+                type: 'pointermove',
+                options: {
+                    pointerId: 1,
+                    width: 1,
+                    height: 1,
+                    pressure: 0.5
+                }
+            },
+            {
+                type: 'mousemove',
+                options: {}
+            },
+            {
+                type: 'pointerup',
+                options: {
+                    pointerId: 1,
+                    width: 1,
+                    height: 1,
+                    pressure: 0
+                }
+            },
+            {
+                type: 'mouseup',
+                options: {}
+            },
+            {
+                type: 'click',
+                options: {}
+            }
         ];
 
-        for (const { type, options } of events) {
+        for (const {
+                type,
+                options
+            }
+            of events) {
             const event = new PointerEvent(type, {
                 ...options,
                 bubbles: true,
@@ -245,22 +284,31 @@
                 continue;
             }
 
-            const percentageText = element.querySelector('span.font-mono')?.textContent;
-            if (percentageText) {
-                const percentage = parseInt(percentageText.replace('%', ''), 10);
-                console.log(`Current value: ${percentage}%, Threshold: ${randomThreshold}%`);
+            const spanElement = element.querySelector('span');
+            const spanText = spanElement?.textContent?.trim();
 
-                if (percentage >= randomThreshold) {
+            if (spanText) {
+                const percentageMatch = spanText.match(/^(\d+)%$/);
+                if (percentageMatch) {
+                    const percentage = parseInt(percentageMatch[1], 10);
+                    console.log(`Current value: ${percentage}%, Threshold: ${randomThreshold}%`);
+
+                    if (percentage >= randomThreshold) {
+                        simulateClick(element);
+                        console.log(`Clicked element at: ${percentage}%`);
+                        randomThreshold = getRandomInt(settings.min, settings.max);
+                        console.log(`New threshold: ${randomThreshold}%`);
+                    }
+                } else {
+                    console.log(`Clicking element with text: ${spanText}`);
                     simulateClick(element);
-                    console.log(`Clicked element at: ${percentage}%`);
-                    randomThreshold = getRandomInt(settings.min, settings.max);
-                    console.log(`New threshold: ${randomThreshold}%`);
                 }
             } else {
-                console.warn('Could not retrieve percentage text');
+                console.warn('Could not retrieve text from <span>');
             }
 
             await new Promise(resolve => setTimeout(resolve, 500));
         }
+
     })();
 })();
